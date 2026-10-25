@@ -711,6 +711,9 @@ export interface SceneCardsSettings {
     // Hide frontmatter (properties) in Manuscript view's embedded scene editors
     hideFrontmatterInManuscript: boolean;
 
+    // Open character/location/codex files in their StoryLine view when clicked in the file explorer
+    openEntitiesInStoryLineView: boolean;
+
     // Persist editor preferences in Obsidian's plugin data
     automaticQuoteReplacement: boolean;
     manuscriptPlainText: boolean;
@@ -1069,6 +1072,7 @@ export const DEFAULT_SETTINGS: SceneCardsSettings = {
 
     hideFrontmatter: true,
     hideFrontmatterInManuscript: true,
+    openEntitiesInStoryLineView: false,
     automaticQuoteReplacement: true,
     manuscriptPlainText: true,
     hideToolbarTitle: true,
@@ -1236,6 +1240,16 @@ export class SceneCardsSettingTab extends PluginSettingTab {
         if (!includeFrontmatterSettings) {
             for (const setting of frontmatterSettings) setting.settingEl.remove();
         }
+
+        new Setting(generalBody)
+            .setName('Open entries in StoryLine view from file explorer')
+            .setDesc('Clicking a character, location or codex file in the file explorer opens it in the matching StoryLine view instead of the markdown editor. Ctrl/Cmd-click or middle-click still opens the raw file, as does the "Open file" button inside StoryLine.')
+            .addToggle(toggle => toggle
+                .setValue(!!this.plugin.settings.openEntitiesInStoryLineView)
+                .onChange(async (value) => {
+                    this.plugin.settings.openEntitiesInStoryLineView = value;
+                    await this.plugin.saveSettings();
+                }));
 
         new Setting(generalBody)
             .setName('Hide "StoryLine" title above view tabs')

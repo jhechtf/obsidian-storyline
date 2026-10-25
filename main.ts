@@ -839,6 +839,24 @@ export default class SceneCardsPlugin extends Plugin {
             })
         );
 
+        // Opt-in: plain left-click on a character/location/codex file in the
+        // file explorer opens its StoryLine view. Capture phase so we run before
+        // Obsidian opens the markdown view; modified clicks keep default behaviour.
+        this.registerDomEvent(activeDocument, 'click', (evt: MouseEvent) => {
+            if (!this.settings.openEntitiesInStoryLineView) return;
+            if (evt.button !== 0 || evt.ctrlKey || evt.metaKey || evt.shiftKey || evt.altKey) return;
+            const target = evt.target as HTMLElement | null;
+            const titleEl = target?.closest?.('.nav-file-title');
+            const path = titleEl?.getAttribute('data-path');
+            if (!titleEl || !path || !titleEl.closest('.workspace-leaf-content[data-type="file-explorer"]')) return;
+            const file = this.app.vault.getAbstractFileByPath(path);
+            if (!(file instanceof TFile) || file.extension !== 'md') return;
+            if (!this.sceneManager.activeProject || !this.resolveEntityType(file.path)) return;
+            evt.preventDefault();
+            evt.stopPropagation();
+            void this.showEntityDetails(file.path);
+        }, true);
+
         this.registerEvent(
             this.app.workspace.on('editor-menu', (menu, _editor, info) => {
                 const file = info.file;
